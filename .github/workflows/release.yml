@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate tag format
+        run: |
+          if [[ ! "${{ github.ref_name }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag format must be v*.*.* (e.g., v1.0.0)"
+            exit 1
+          fi
+
+      - name: Setup Lua
+        uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "5.1"
+
+      - name: Setup Luarocks
+        uses: leafo/gh-actions-luarocks@v4
+
+      - name: Install Luacheck
+        run: luarocks install luacheck
+
+      - name: Run Luacheck
+        run: luacheck .
+
+      - name: Extract release notes
+        id: extract_notes
+        run: |
+          if [ -f CHANGELOG.md ]; then
+            # Extract notes for current version from CHANGELOG.md
+            awk '/^## \['"${GITHUB_REF_NAME#v}"'\]/{flag=1; next} /^## \[/{flag=0} flag' CHANGELOG.md > release_notes.md
+            if [ ! -s release_notes.md ]; then
+              echo "No release notes found for version ${GITHUB_REF_NAME#v} in CHANGELOG.md"
+              echo "Released ${GITHUB_REF_NAME}" > release_notes.md
+            fi
+          else
+            echo "Released ${GITHUB_REF_NAME}" > release_notes.md
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          generate_release_notes: true
