@@ -17,7 +17,7 @@ A simple and lightweight daily notes plugin for Neovim that helps you maintain a
 
 ```lua
 {
-  "[your-username]/simple-daily-notes.nvim",
+  "pankajgarkoti/simple-daily-notes.nvim",
   config = function()
     require("simple-daily-notes").setup({
       base_dir = "~/Documents/Notes",  -- Your notes directory
@@ -27,8 +27,8 @@ A simple and lightweight daily notes plugin for Neovim that helps you maintain a
   end,
   keys = {
     { "<leader>dn", function() require("simple-daily-notes").open_daily_note() end, desc = "Open daily note" },
-    { "<leader>dp", function() require("simple-daily-notes").open_adjacent_note(-1) end, desc = "Previous daily note" },
-    { "<leader>dt", function() require("simple-daily-notes").open_adjacent_note(1) end, desc = "Next daily note" },
+    { "<leader>dk", function() require("simple-daily-notes").open_adjacent_note(-1) end, desc = "Previous daily note" },
+    { "<leader>dj", function() require("simple-daily-notes").open_adjacent_note(1) end, desc = "Next daily note" },
     { "<leader>dm", function() require("simple-daily-notes").create_tomorrow_note() end, desc = "Create tomorrow's note" },
     { "<leader>dc", function() require("simple-daily-notes").configure_interactive() end, desc = "Configure daily notes" },
   },
@@ -46,7 +46,7 @@ A simple and lightweight daily notes plugin for Neovim that helps you maintain a
 
 ```lua
 use {
-  "[your-username]/simple-daily-notes.nvim",
+  "pankajgarkoti/simple-daily-notes.nvim",
   config = function()
     require("simple-daily-notes").setup({
       -- your configuration here
@@ -92,8 +92,8 @@ use {
 When using the lazy.nvim configuration above:
 
 - `<leader>dn` - Open daily note
-- `<leader>dp` - Previous daily note
-- `<leader>dt` - Next daily note  
+- `<leader>dk` - Previous daily note
+- `<leader>dj` - Next daily note  
 - `<leader>dm` - Create tomorrow's note
 - `<leader>dc` - Configure plugin
 

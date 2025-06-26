@@ -25,8 +25,8 @@ notes. You can map these commands to keys for quick access. See the
 Example key mappings:
 >lua
   vim.keymap.set("n", "<leader>dn", "<cmd>DailyNote<cr>", { desc = "Open daily note" })
-  vim.keymap.set("n", "<leader>dp", "<cmd>DailyNotePrev<cr>", { desc = "Previous daily note" })
-  vim.keymap.set("n", "<leader>dt", "<cmd>DailyNoteNext<cr>", { desc = "Next daily note" })
+  vim.keymap.set("n", "<leader>dk", "<cmd>DailyNotePrev<cr>", { desc = "Previous daily note" })
+  vim.keymap.set("n", "<leader>dj", "<cmd>DailyNoteNext<cr>", { desc = "Next daily note" })
 <
 ==============================================================================
 CONFIGURATION					*simple-daily-notes-configuration*
