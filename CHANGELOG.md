@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial release of `simple-daily-notes`.
+- Initial release of `daily-notes`.
 - Commands to open today's, previous, next, and tomorrow's daily notes (`:DailyNote`, `:DailyNotePrev`, `:DailyNoteNext`, `:DailyNoteTomorrow`).
 - Interactive configuration with `:DailyNoteConfig`.
 - Configuration via `setup()` function for `base_dir`, `journal_path`, `file_format`, `dir_format`, and `template_path`.
 - Support for creating new notes from a template or by copying from the previous day.
-- Vim help documentation (`doc/simple-daily-notes.txt`).
+- Vim help documentation (`doc/daily-notes.txt`).

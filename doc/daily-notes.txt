@@ -1,0 +1,93 @@
+*daily-notes.txt*	A simple daily notes plugin for Neovim
+
+==============================================================================
+CONTENTS					*daily-notes-contents*
+
+  1. Introduction......................|daily-notes-introduction|
+  2. Usage...............................|daily-notes-usage|
+  3. Configuration.................|daily-notes-configuration|
+  4. Commands..........................|daily-notes-commands|
+  5. License.............................|daily-notes-license|
+
+==============================================================================
+INTRODUCTION					*daily-notes-introduction*
+
+`daily-notes` is a simple and lightweight daily notes plugin for
+Neovim that helps you maintain a daily journal with ease.
+
+==============================================================================
+USAGE						*daily-notes-usage*
+
+The plugin is centered around a few commands to open and navigate daily
+notes. You can map these commands to keys for quick access. See the
+|daily-notes-commands| section for a full list.
+
+Example key mappings:
+>lua
+  vim.keymap.set("n", "<leader>dn", "<cmd>DailyNote<cr>", { desc = "Open daily note" })
+  vim.keymap.set("n", "<leader>dk", "<cmd>DailyNotePrev<cr>", { desc = "Previous daily note" })
+  vim.keymap.set("n", "<leader>dj", "<cmd>DailyNoteNext<cr>", { desc = "Next daily note" })
+<
+==============================================================================
+CONFIGURATION					*daily-notes-configuration*
+
+You can configure the plugin by calling the `setup()` function.
+
+Default configuration:
+>lua
+  require("daily-notes").setup({
+    base_dir = "~/Desktop/notes",
+    journal_path = "Journal",
+    file_format = "%Y-%m-%d.md",
+    dir_format = "%Y/%m",
+    template_path = nil,
+  })
+<
+CONFIGURATION OPTIONS
+
+`base_dir`			(string)
+The root directory where your notes are stored. The plugin's directory-aware
+features are only active within this directory.
+Default: `~/Desktop/notes`
+
+`journal_path`		(string)
+The subdirectory within `base_dir` where daily notes will be stored.
+Default: `Journal`
+
+`file_format`		(string)
+The format for daily note filenames, using `os.date` patterns.
+Default: `%Y-%m-%d.md`
+
+`dir_format`		(string)
+The format for organizing notes into subdirectories, using `os.date` patterns.
+Default: `%Y/%m`
+
+`template_path`		(string or nil)
+Optional path to a template file. If provided, new notes will use this
+template when yesterday's note doesn't exist.
+Default: `nil`
+
+==============================================================================
+COMMANDS					*daily-notes-commands*
+
+:DailyNote
+	Open today's daily note. If it doesn't exist, it will be created.
+
+:DailyNotePrev
+	Open the previous day's note, relative to the currently open note.
+
+:DailyNoteNext
+	Open the next day's note, relative to the currently open note.
+
+:DailyNoteTomorrow
+	Create and open tomorrow's note.
+
+:DailyNoteConfig
+	Start an interactive prompt to configure the plugin settings.
+
+==============================================================================
+LICENSE						*daily-notes-license*
+
+This plugin is distributed under the MIT License.
+
+ vim:tw=78:ts=8:sw=4:sts=4:et:ft=help:norl:

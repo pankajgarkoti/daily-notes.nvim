@@ -1,4 +1,4 @@
-# Simple Daily Notes
+# Daily Notes
 
 A simple and lightweight daily notes plugin for Neovim that helps you maintain a daily journal with ease.
 
@@ -17,20 +17,20 @@ A simple and lightweight daily notes plugin for Neovim that helps you maintain a
 
 ```lua
 {
-  "pankajgarkoti/simple-daily-notes.nvim",
+  "pankajgarkoti/daily-notes.nvim",
   config = function()
-    require("simple-daily-notes").setup({
+    require("daily-notes").setup({
       base_dir = "~/Documents/Notes",  -- Your notes directory
       journal_path = "Daily",          -- Subdirectory for daily notes
       template_path = "~/Documents/Notes/templates/daily.md", -- Optional template
     })
   end,
   keys = {
-    { "<leader>dn", function() require("simple-daily-notes").open_daily_note() end, desc = "Open daily note" },
-    { "<leader>dk", function() require("simple-daily-notes").open_adjacent_note(-1) end, desc = "Previous daily note" },
-    { "<leader>dj", function() require("simple-daily-notes").open_adjacent_note(1) end, desc = "Next daily note" },
-    { "<leader>dm", function() require("simple-daily-notes").create_tomorrow_note() end, desc = "Create tomorrow's note" },
-    { "<leader>dc", function() require("simple-daily-notes").configure_interactive() end, desc = "Configure daily notes" },
+    { "<leader>dn", function() require("daily-notes").open_daily_note() end, desc = "Open daily note" },
+    { "<leader>dk", function() require("daily-notes").open_adjacent_note(-1) end, desc = "Previous daily note" },
+    { "<leader>dj", function() require("daily-notes").open_adjacent_note(1) end, desc = "Next daily note" },
+    { "<leader>dm", function() require("daily-notes").create_tomorrow_note() end, desc = "Create tomorrow's note" },
+    { "<leader>dc", function() require("daily-notes").configure_interactive() end, desc = "Configure daily notes" },
   },
   cmd = {
     "DailyNote",
@@ -46,9 +46,9 @@ A simple and lightweight daily notes plugin for Neovim that helps you maintain a
 
 ```lua
 use {
-  "pankajgarkoti/simple-daily-notes.nvim",
+  "pankajgarkoti/daily-notes.nvim",
   config = function()
-    require("simple-daily-notes").setup({
+    require("daily-notes").setup({
       -- your configuration here
     })
   end

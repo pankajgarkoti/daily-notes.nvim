@@ -1,1 +1,1 @@
-return require('simple-daily-notes')
+return require('daily-notes')

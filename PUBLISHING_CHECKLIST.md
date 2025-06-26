@@ -1,9 +1,9 @@
-# Simple Daily Notes Plugin - Publishing Checklist
+# Daily Notes Plugin - Publishing Checklist
 
 ## 🚀 Pre-Publication Checklist
 
 ### ✅ Core Requirements
-- [x] **Main plugin file** (`lua/simple-daily-notes.lua`) - Complete and functional
+- [x] **Main plugin file** (`lua/daily-notes.lua`) - Complete and functional
 - [x] **Entry point** (`init.lua`) - Properly returns main module
 - [x] **License file** (MIT License) - Present
 - [x] **README documentation** - Comprehensive with examples
@@ -15,7 +15,7 @@
 - [x] **README.md** - Comprehensive with installation, usage, and examples
 - [x] **Configuration options** - All options documented with examples
 - [x] **Code comments** - Functions have proper documentation
-- [x] **Vim help documentation** - Create `doc/simple-daily-notes.txt`
+- [x] **Vim help documentation** - Create `doc/daily-notes.txt`
 - [x] **CHANGELOG.md** - Version history and changes
 - [x] **Update copyright** - Personalize LICENSE file
 
@@ -69,9 +69,9 @@
 ## 🛠️ Issues to Fix Before Publishing
 
 ### 1. Naming Consistency Issues
-- **File**: `plugin/simple-daily-notes.vim` uses Lua syntax instead of Vimscript - **FIXED**
-- **Names**: Inconsistent between "simple-daily-notes", "simple_daily_notes", "daily-note" - **FIXED**
-- **README**: Contains placeholder "your-username/simple-daily-notes.nvim" - **FIXED**
+- **File**: `plugin/daily-notes.vim` uses Lua syntax instead of Vimscript - **FIXED**
+- **Names**: Inconsistent between "daily-notes", "daily_notes", "daily-note" - **FIXED**
+- **README**: Contains placeholder "your-username/daily-notes.nvim" - **FIXED**
 - **Keybindings**: Example keybindings in docs were not intuitive (`<leader>dt` for next) - **FIXED**
 
 ### 2. File Structure Issues
