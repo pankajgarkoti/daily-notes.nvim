@@ -34,7 +34,7 @@ A simple and lightweight daily notes plugin for Neovim that helps you maintain a
   },
   cmd = {
     "DailyNote",
-    "DailyNotePrev", 
+    "DailyNotePrev",
     "DailyNoteNext",
     "DailyNoteTomorrow",
     "DailyNoteConfig",
@@ -62,7 +62,7 @@ use {
 ```lua
 {
   base_dir = "~/Desktop/notes",    -- Root directory for notes
-  journal_path = "Journal",        -- Subdirectory for daily notes  
+  journal_path = "Journal",        -- Subdirectory for daily notes
   file_format = "%Y-%m-%d.md",     -- Date format for filenames
   dir_format = "%Y/%m",            -- Date format for directories
   template_path = nil,             -- Optional template file path
@@ -83,7 +83,7 @@ use {
 
 - `:DailyNote` - Open today's daily note
 - `:DailyNotePrev` - Open previous day's note
-- `:DailyNoteNext` - Open next day's note  
+- `:DailyNoteNext` - Open next day's note
 - `:DailyNoteTomorrow` - Create and open tomorrow's note
 - `:DailyNoteConfig` - Interactive configuration
 
@@ -93,7 +93,7 @@ When using the lazy.nvim configuration above:
 
 - `<leader>dn` - Open daily note
 - `<leader>dk` - Previous daily note
-- `<leader>dj` - Next daily note  
+- `<leader>dj` - Next daily note
 - `<leader>dm` - Create tomorrow's note
 - `<leader>dc` - Configure plugin
 
@@ -129,6 +129,15 @@ The plugin creates a directory structure like this:
 
 - Neovim 0.7+
 - No external dependencies
+
+## AI Disclaimer
+
+This plugin was create entirely using CodeCompanion [[https://github.com/olimorris/codecompanion.nvim]] and Aider [[https://github.com/aider-chat/aider]].
+
+The models user were:
+
+- `gemini-2.5-pro` and `gemini-2.5-flash` with CodeCompanion
+- `claude-4-sonnet` with CodeCompanion
 
 ## License
 
