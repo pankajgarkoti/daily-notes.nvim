@@ -116,6 +116,57 @@ local function get_date_from_path(path)
 	return { year = tonumber(year), month = tonumber(month), day = tonumber(day) }
 end
 
+local function generate_metadata(date_table)
+	local note_date_ts = os.time(date_table)
+	local id = os.date("%Y-%m-%d", note_date_ts)
+	local alias_date = os.date("%B %d, %Y", note_date_ts)
+	-- Using current date for template_version as it's when the note is created.
+	local creation_date = os.date("%Y-%m-%d")
+
+	local metadata = {
+		"---",
+		"id: " .. id,
+		"aliases:",
+		"    - " .. alias_date,
+		"tags:",
+		"    - daily",
+		"    - log",
+		"    - daily-notes",
+		"template_version: " .. creation_date,
+		"---",
+		"", -- Extra newline for separation
+	}
+	return table.concat(metadata, "\n")
+end
+
+local function strip_frontmatter_from_lines(lines)
+	if #lines == 0 or lines[1] ~= "---" then
+		return lines
+	end
+
+	local end_marker_index = -1
+	for i = 2, #lines do
+		if lines[i] == "---" then
+			end_marker_index = i
+			break
+		end
+	end
+
+	if end_marker_index > 0 then
+		local new_lines = {}
+		for i = end_marker_index + 1, #lines do
+			table.insert(new_lines, lines[i])
+		end
+		-- Also remove a potential blank line after the frontmatter
+		if #new_lines > 0 and new_lines[1] == "" then
+			table.remove(new_lines, 1)
+		end
+		return new_lines
+	end
+
+	return lines -- No closing '---' found
+end
+
 function M.open_daily_note()
 	local cwd = vim.fn.getcwd()
 	if not (cwd == M.config.base_dir or cwd:find(M.config.base_dir .. "/", 1, true) == 1) then
@@ -137,6 +188,8 @@ function M.open_daily_note()
 
 	vim.fn.mkdir(today_dir_path, "p")
 
+	local new_metadata = generate_metadata(today)
+
 	local yesterday_t = os.time(today) - (24 * 60 * 60)
 	local yesterday = os.date("*t", yesterday_t)
 	local yesterday_dir_path = M.config.base_dir ..
@@ -147,17 +200,20 @@ function M.open_daily_note()
 	local content = ""
 	if vim.fn.filereadable(yesterday_path) == 1 then
 		local lines = vim.fn.readfile(yesterday_path)
+		lines = strip_frontmatter_from_lines(lines)
 		content = table.concat(lines, "\n")
 		vim.notify("Created today's note from yesterday's.", vim.log.levels.INFO)
 	elseif M.config.template_path and vim.fn.filereadable(M.config.template_path) == 1 then
 		local lines = vim.fn.readfile(M.config.template_path)
+		lines = strip_frontmatter_from_lines(lines)
 		content = table.concat(lines, "\n")
 		vim.notify("Created today's note from template.", vim.log.levels.INFO)
 	else
 		vim.notify("Yesterday's note not found. Creating an empty daily note.", vim.log.levels.INFO)
 	end
 
-	vim.fn.writefile(vim.split(content, "\n"), today_path)
+	local final_content = new_metadata .. content
+	vim.fn.writefile(vim.split(final_content, "\n", true), today_path)
 	vim.cmd("e " .. today_path)
 end
 
@@ -217,6 +273,8 @@ function M.create_tomorrow_note()
 
 	vim.fn.mkdir(tomorrow_dir_path, "p")
 
+	local new_metadata = generate_metadata(tomorrow)
+
 	local today = os.date("*t")
 	local today_dir_path = M.config.base_dir ..
 			"/" .. M.config.journal_path .. "/" .. os.date(M.config.dir_format, os.time(today))
@@ -226,17 +284,20 @@ function M.create_tomorrow_note()
 	local content = ""
 	if vim.fn.filereadable(today_path) == 1 then
 		local lines = vim.fn.readfile(today_path)
+		lines = strip_frontmatter_from_lines(lines)
 		content = table.concat(lines, "\n")
 		vim.notify("Created tomorrow's note from today's.", vim.log.levels.INFO)
 	elseif M.config.template_path and vim.fn.filereadable(M.config.template_path) == 1 then
 		local lines = vim.fn.readfile(M.config.template_path)
+		lines = strip_frontmatter_from_lines(lines)
 		content = table.concat(lines, "\n")
 		vim.notify("Created tomorrow's note from template.", vim.log.levels.INFO)
 	else
 		vim.notify("Today's note not found. Creating an empty note for tomorrow.", vim.log.levels.INFO)
 	end
 
-	vim.fn.writefile(vim.split(content, "\n"), tomorrow_path)
+	local final_content = new_metadata .. content
+	vim.fn.writefile(vim.split(final_content, "\n", true), tomorrow_path)
 	vim.cmd("e " .. tomorrow_path)
 end
 
