@@ -2,9 +2,9 @@ name: Lint
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   luacheck:
@@ -26,4 +26,4 @@ jobs:
         run: luarocks install luacheck
 
       - name: Run Luacheck
-        run: luacheck .
+        run: luacheck lua/ init.lua --config .luacheckrc
