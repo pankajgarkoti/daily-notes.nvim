@@ -32,29 +32,19 @@ function M.setup(opts)
 
 	-- Validate configuration
 	if not M.config.base_dir or M.config.base_dir == "" then
-		vim.notify("daily_note: base_dir cannot be empty", vim.log.levels.ERROR)
+		vim.notify("simple-daily-notes: base_dir cannot be empty", vim.log.levels.ERROR)
 		return false
 	end
 
 	if not M.config.journal_path or M.config.journal_path == "" then
-		vim.notify("daily_note: journal_path cannot be empty", vim.log.levels.ERROR)
+		vim.notify("simple-daily-notes: journal_path cannot be empty", vim.log.levels.ERROR)
 		return false
 	end
 
 	-- Check if template exists if specified
 	if M.config.template_path and vim.fn.filereadable(M.config.template_path) == 0 then
-		vim.notify("daily_note: Template file not found: " .. M.config.template_path, vim.log.levels.WARN)
+		vim.notify("simple-daily-notes: Template file not found: " .. M.config.template_path, vim.log.levels.WARN)
 	end
-
-	-- Create user commands
-	vim.api.nvim_create_user_command('DailyNote', M.open_daily_note, { desc = 'Open today\'s daily note' })
-	vim.api.nvim_create_user_command('DailyNotePrev', function() M.open_adjacent_note(-1) end,
-		{ desc = 'Open previous daily note' })
-	vim.api.nvim_create_user_command('DailyNoteNext', function() M.open_adjacent_note(1) end,
-		{ desc = 'Open next daily note' })
-	vim.api.nvim_create_user_command('DailyNoteTomorrow', M.create_tomorrow_note, { desc = 'Create tomorrow\'s note' })
-	vim.api.nvim_create_user_command('DailyNoteConfig', M.configure_interactive,
-		{ desc = 'Configure daily notes interactively' })
 
 	return true
 end
@@ -65,7 +55,7 @@ end
 
 function M.set_config(key, value)
 	if M.config[key] == nil then
-		vim.notify("daily_note: Unknown config key: " .. key, vim.log.levels.ERROR)
+		vim.notify("simple-daily-notes: Unknown config key: " .. key, vim.log.levels.ERROR)
 		return false
 	end
 
@@ -77,7 +67,7 @@ function M.set_config(key, value)
 		end
 	end
 
-	vim.notify("daily_note: Updated " .. key, vim.log.levels.INFO)
+	vim.notify("simple-daily-notes: Updated " .. key, vim.log.levels.INFO)
 	return true
 end
 
@@ -251,4 +241,3 @@ function M.create_tomorrow_note()
 end
 
 return M
-

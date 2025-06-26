@@ -17,7 +17,7 @@ A simple and lightweight daily notes plugin for Neovim that helps you maintain a
 
 ```lua
 {
-  "your-username/simple-daily-notes.nvim",
+  "[your-username]/simple-daily-notes.nvim",
   config = function()
     require("simple-daily-notes").setup({
       base_dir = "~/Documents/Notes",  -- Your notes directory
@@ -46,7 +46,7 @@ A simple and lightweight daily notes plugin for Neovim that helps you maintain a
 
 ```lua
 use {
-  "your-username/simple-daily-notes.nvim",
+  "[your-username]/simple-daily-notes.nvim",
   config = function()
     require("simple-daily-notes").setup({
       -- your configuration here

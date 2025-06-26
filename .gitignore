@@ -1,3 +1,11 @@
-# PUBLISHING_CHECKLIST.md
+# Neovim swap files
+*.swp
+*.swo
+
+# OS-specific
 .DS_Store
+Thumbs.db
+
+# Development artifacts
+# PUBLISHING_CHECKLIST.md
 .aider*
