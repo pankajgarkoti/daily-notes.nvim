@@ -1,6 +1,8 @@
 # Daily Notes
 
-A simple and lightweight daily notes plugin for Neovim that helps you maintain a daily journal with ease.
+A simple and lightweight daily notes plugin for Neovim that helps you maintain a daily journal with ease. This is an attempt to re-create Obsidian's daily notes functionality without any fluff.
+
+[![Lint](https://github.com/pankajgarkoti/daily-notes.nvim/actions/workflows/lint.yml/badge.svg)](https://github.com/pankajgarkoti/daily-notes.nvim/actions/workflows/lint.yml)
 
 ## Features
 
@@ -132,12 +134,12 @@ The plugin creates a directory structure like this:
 
 ## AI Disclaimer
 
-This plugin was create entirely using CodeCompanion [[https://github.com/olimorris/codecompanion.nvim]] and Aider [[https://github.com/aider-chat/aider]].
+This plugin was create entirely using CodeCompanion https://github.com/olimorris/codecompanion.nvim and Aider https://github.com/aider-chat/aider
 
-The models user were:
+The models used were:
 
-- `gemini-2.5-pro` and `gemini-2.5-flash` with CodeCompanion
-- `claude-4-sonnet` with CodeCompanion
+- `gemini-2.5-pro` and `gemini-2.5-flash` with Aider - Generated most of the code and documentation
+- `claude-4-sonnet` with CodeCompanion - Helped with more minute fixes and changes
 
 ## License
 
