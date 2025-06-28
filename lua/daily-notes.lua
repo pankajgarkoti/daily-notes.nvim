@@ -116,12 +116,42 @@ local function get_date_from_path(path)
 	return { year = tonumber(year), month = tonumber(month), day = tonumber(day) }
 end
 
-local function generate_metadata(date_table)
+local function get_template_version(path)
+    if not path or vim.fn.filereadable(path) == 0 then
+        return nil
+    end
+
+    local lines = vim.fn.readfile(path)
+    if #lines < 2 or lines[1] ~= "---" then
+        return nil
+    end
+
+    for i = 2, #lines do
+        if lines[i] == "---" then
+            return nil -- Reached end of frontmatter without finding version
+        end
+        -- Match 'template_version:' with optional whitespace
+        local match = lines[i]:match("^template_version:%s*(.+)$")
+        if match then
+            -- Trim leading/trailing whitespace from the matched value
+            return match:match("^%s*(.-)%s*$")
+        end
+    end
+
+    return nil -- No closing '---' or version found
+end
+
+local function generate_metadata(date_table, template_version)
 	local note_date_ts = os.time(date_table)
 	local id = os.date("%Y-%m-%d", note_date_ts)
 	local alias_date = os.date("%B %d, %Y", note_date_ts)
-	-- Using current date for template_version as it's when the note is created.
 	local creation_date = os.date("%Y-%m-%d")
+
+	local version = template_version
+	if not version or version == "" then
+		-- Using current date for template_version as it's when the note is created.
+		version = creation_date
+	end
 
 	local metadata = {
 		"---",
@@ -132,12 +162,13 @@ local function generate_metadata(date_table)
 		"    - daily",
 		"    - log",
 		"    - daily-notes",
-		"template_version: " .. creation_date,
+		"template_version: " .. version,
 		"---",
 		"", -- Extra newline for separation
 	}
 	return table.concat(metadata, "\n")
 end
+
 
 local function strip_frontmatter_from_lines(lines)
 	if #lines == 0 or lines[1] ~= "---" then
@@ -188,7 +219,8 @@ function M.open_daily_note()
 
 	vim.fn.mkdir(today_dir_path, "p")
 
-	local new_metadata = generate_metadata(today)
+	local template_version = get_template_version(M.config.template_path)
+	local new_metadata = generate_metadata(today, template_version)
 
 	local yesterday_t = os.time(today) - (24 * 60 * 60)
 	local yesterday = os.date("*t", yesterday_t)
@@ -273,7 +305,8 @@ function M.create_tomorrow_note()
 
 	vim.fn.mkdir(tomorrow_dir_path, "p")
 
-	local new_metadata = generate_metadata(tomorrow)
+	local template_version = get_template_version(M.config.template_path)
+	local new_metadata = generate_metadata(tomorrow, template_version)
 
 	local today = os.date("*t")
 	local today_dir_path = M.config.base_dir ..
