@@ -8,6 +8,12 @@ local M = {}
 ---@field dir_format string The format for the directory structure, using os.date patterns.
 ---@field template_path string | nil Optional path to a template file for new notes if yesterday's doesn't exist.
 
+---@class NoteSection
+---@field header string|nil The header line (e.g., "# Header")
+---@field content string[] Array of content lines under this header
+
+
+
 ---@type DailyNoteConfig
 local default_config = {
 	base_dir = vim.fn.expand("~/Desktop/notes"),
@@ -19,7 +25,94 @@ local default_config = {
 
 M.config = vim.deepcopy(default_config)
 
---- Setup function to configure the daily note system
+---Parse note content into a structured format
+---@param lines string[] Array of lines from the note
+---@return NoteSection[] Array of parsed sections
+local function _parse_note_content(lines)
+	---@type NoteSection[]
+	local sections = {}
+	---@type NoteSection
+	local current_section = { header = nil, content = {} }
+
+	for _, line in ipairs(lines) do
+		if line:match("^#+") then
+			-- Only add the current section if it has content or a header
+			if current_section.header or #current_section.content > 0 then
+				table.insert(sections, current_section)
+			end
+			current_section = { header = line, content = {} }
+		else
+			table.insert(current_section.content, line)
+		end
+	end
+
+	-- Always add the final section
+	table.insert(sections, current_section)
+
+	return sections
+end
+
+---Merge two parsed note structures, using template structure but preserving old content
+---@param template_parsed NoteSection[] Parsed template structure (defines the output structure)
+---@param old_note_parsed NoteSection[] Parsed old note (source of content to preserve)
+---@return string The merged content as a single string
+local function _merge_note_contents(template_parsed, old_note_parsed)
+	---@type string[]
+	local merged_lines = {}
+
+	-- Create lookup table for old note sections by header
+	---@type table<string, string[]>
+	local old_sections_by_header = {}
+	---@type table<string, boolean>
+	local used_old_headers = {}
+
+	for _, section in ipairs(old_note_parsed) do
+		if section.header then
+			old_sections_by_header[section.header] = section.content
+		end
+	end
+
+	-- Process template sections, using old content where available
+	for _, template_section in ipairs(template_parsed) do
+		if template_section.header then
+			-- Add the header
+			table.insert(merged_lines, template_section.header)
+
+			-- Use old content if available, otherwise use template content
+			if old_sections_by_header[template_section.header] then
+				used_old_headers[template_section.header] = true
+				for _, line in ipairs(old_sections_by_header[template_section.header]) do
+					table.insert(merged_lines, line)
+				end
+			else
+				for _, line in ipairs(template_section.content) do
+					table.insert(merged_lines, line)
+				end
+			end
+		else
+			-- Section without header (usually at the beginning)
+			for _, line in ipairs(template_section.content) do
+				table.insert(merged_lines, line)
+			end
+		end
+	end
+
+	-- Add any sections from old note that weren't in the template
+	for _, old_section in ipairs(old_note_parsed) do
+		if old_section.header and not used_old_headers[old_section.header] then
+			table.insert(merged_lines, old_section.header)
+			for _, line in ipairs(old_section.content) do
+				table.insert(merged_lines, line)
+			end
+		end
+	end
+
+	return table.concat(merged_lines, "\n")
+end
+
+---Setup function to configure the daily note system
+---@param opts DailyNoteConfig|nil Configuration options
+---@return boolean Success status
 function M.setup(opts)
 	opts = opts or {}
 	M.config = vim.tbl_deep_extend("force", default_config, opts)
@@ -49,10 +142,16 @@ function M.setup(opts)
 	return true
 end
 
+---Get a copy of the current configuration
+---@return DailyNoteConfig
 function M.get_config()
 	return vim.deepcopy(M.config)
 end
 
+---Set a configuration value
+---@param key string Configuration key
+---@param value any Configuration value
+---@return boolean Success status
 function M.set_config(key, value)
 	if M.config[key] == nil then
 		vim.notify("daily-notes: Unknown config key: " .. key, vim.log.levels.ERROR)
@@ -71,7 +170,11 @@ function M.set_config(key, value)
 	return true
 end
 
+---Interactive configuration setup
 function M.configure_interactive()
+	---@param prompt string
+	---@param default string|nil
+	---@return string|nil
 	local function get_input(prompt, default)
 		local input = vim.fn.input(prompt .. " [" .. (default or "none") .. "]: ")
 		if input == "" then
@@ -80,6 +183,8 @@ function M.configure_interactive()
 		return input
 	end
 
+	---@param prompt string
+	---@return boolean
 	local function get_confirm(prompt)
 		local response = vim.fn.input(prompt .. " (y/n): ")
 		return response:lower() == "y" or response:lower() == "yes"
@@ -87,11 +192,14 @@ function M.configure_interactive()
 
 	print("=== Daily Note Configuration ===")
 
-	local new_config = {}
-	new_config.base_dir = get_input("Notes base directory", M.config.base_dir)
-	new_config.journal_path = get_input("Journal subdirectory", M.config.journal_path)
-	new_config.file_format = get_input("File format (date pattern)", M.config.file_format)
-	new_config.dir_format = get_input("Directory format (date pattern)", M.config.dir_format)
+	---@type DailyNoteConfig
+	local new_config = {
+		base_dir = get_input("Notes base directory", M.config.base_dir) or M.config.base_dir,
+		journal_path = get_input("Journal subdirectory", M.config.journal_path) or M.config.journal_path,
+		file_format = get_input("File format (date pattern)", M.config.file_format) or M.config.file_format,
+		dir_format = get_input("Directory format (date pattern)", M.config.dir_format) or M.config.dir_format,
+		template_path = nil, -- Will be set below
+	}
 
 	if get_confirm("Use a template file?") then
 		new_config.template_path = get_input("Template file path", M.config.template_path)
@@ -107,6 +215,9 @@ function M.configure_interactive()
 	end
 end
 
+---Extract date components from a file path
+---@param path string File path
+---@return {year: number, month: number, day: number}|nil Date components or nil if parsing fails
 local function get_date_from_path(path)
 	local filename = vim.fn.fnamemodify(path, ":t")
 	local year, month, day = filename:match("^(%d%d%d%d)-(%d%d)-(%d%d)%.md$")
@@ -116,31 +227,38 @@ local function get_date_from_path(path)
 	return { year = tonumber(year), month = tonumber(month), day = tonumber(day) }
 end
 
+---Get template version from a file's frontmatter
+---@param path string|nil File path
+---@return string|nil Template version or nil if not found
 local function get_template_version(path)
-    if not path or vim.fn.filereadable(path) == 0 then
-        return nil
-    end
+	if not path or vim.fn.filereadable(path) == 0 then
+		return nil
+	end
 
-    local lines = vim.fn.readfile(path)
-    if #lines < 2 or lines[1] ~= "---" then
-        return nil
-    end
+	local lines = vim.fn.readfile(path)
+	if #lines < 2 or lines[1] ~= "---" then
+		return nil
+	end
 
-    for i = 2, #lines do
-        if lines[i] == "---" then
-            return nil -- Reached end of frontmatter without finding version
-        end
-        -- Match 'template_version:' with optional whitespace
-        local match = lines[i]:match("^template_version:%s*(.+)$")
-        if match then
-            -- Trim leading/trailing whitespace from the matched value
-            return match:match("^%s*(.-)%s*$")
-        end
-    end
+	for i = 2, #lines do
+		if lines[i] == "---" then
+			return nil -- Reached end of frontmatter without finding version
+		end
+		-- Match 'template_version:' with optional whitespace
+		local match = lines[i]:match("^template_version:%s*(.+)$")
+		if match then
+			-- Trim leading/trailing whitespace from the matched value
+			return match:match("^%s*(.-)%s*$")
+		end
+	end
 
-    return nil -- No closing '---' or version found
+	return nil -- No closing '---' or version found
 end
 
+---Generate metadata frontmatter for a note
+---@param date_table osdate Date table
+---@param template_version string|nil Template version
+---@return string Metadata as string
 local function generate_metadata(date_table, template_version)
 	local note_date_ts = os.time(date_table)
 	local id = os.date("%Y-%m-%d", note_date_ts)
@@ -169,7 +287,9 @@ local function generate_metadata(date_table, template_version)
 	return table.concat(metadata, "\n")
 end
 
-
+---Remove frontmatter from lines array
+---@param lines string[] Array of lines
+---@return string[] Lines without frontmatter
 local function strip_frontmatter_from_lines(lines)
 	if #lines == 0 or lines[1] ~= "---" then
 		return lines
@@ -198,6 +318,7 @@ local function strip_frontmatter_from_lines(lines)
 	return lines -- No closing '---' found
 end
 
+---Open today's daily note
 function M.open_daily_note()
 	local cwd = vim.fn.getcwd()
 	if not (cwd == M.config.base_dir or cwd:find(M.config.base_dir .. "/", 1, true) == 1) then
@@ -230,7 +351,18 @@ function M.open_daily_note()
 	local yesterday_path = yesterday_dir_path .. "/" .. yesterday_filename
 
 	local content = ""
-	if vim.fn.filereadable(yesterday_path) == 1 then
+	local prev_note_version = get_template_version(yesterday_path)
+
+	if template_version and prev_note_version and template_version > prev_note_version then
+		local template_lines = vim.fn.readfile(M.config.template_path)
+		local yesterday_lines = vim.fn.readfile(yesterday_path)
+
+		local template_parsed = _parse_note_content(strip_frontmatter_from_lines(template_lines))
+		local yesterday_parsed = _parse_note_content(strip_frontmatter_from_lines(yesterday_lines))
+
+		content = _merge_note_contents(template_parsed, yesterday_parsed)
+		vim.notify("Created today's note by merging the updated template.", vim.log.levels.INFO)
+	elseif vim.fn.filereadable(yesterday_path) == 1 then
 		local lines = vim.fn.readfile(yesterday_path)
 		lines = strip_frontmatter_from_lines(lines)
 		content = table.concat(lines, "\n")
@@ -249,6 +381,8 @@ function M.open_daily_note()
 	vim.cmd("e " .. today_path)
 end
 
+---Open an adjacent note (previous or next day)
+---@param offset number Days offset (-1 for previous, 1 for next)
 function M.open_adjacent_note(offset)
 	local current_path = vim.fn.expand("%:p")
 	local journal_dir = M.config.base_dir .. "/" .. M.config.journal_path
@@ -283,6 +417,7 @@ function M.open_adjacent_note(offset)
 	end
 end
 
+---Create tomorrow's note
 function M.create_tomorrow_note()
 	local cwd = vim.fn.getcwd()
 	if not (cwd == M.config.base_dir or cwd:find(M.config.base_dir .. "/", 1, true) == 1) then
