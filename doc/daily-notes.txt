@@ -43,10 +43,7 @@ Default configuration:
     dir_format = "%Y/%m",
     template_path = nil,
     ignored_headers = {},
-    keymaps = {
-      timestamp = "<leader>ts",
-      timestamp_new_line = "<leader>T",
-    },
+    timestamp_format = "%H:%M:%S",
   })
 <
 CONFIGURATION OPTIONS
@@ -78,9 +75,9 @@ A list of top-level headers whose content should not be copied from the
 previous day's note. For example, `{"Tasks"}`.
 Default: `{}`
 
-`keymaps`			(table)
-A table of key mappings for plugin actions. Set a keymap to `false` to disable it.
-See |daily-notes-keymaps| for details.
+`timestamp_format`		(string)
+The format for timestamps, using `os.date` patterns.
+Default: `%H:%M:%S`
 
 ==============================================================================
 COMMANDS					*daily-notes-commands*
@@ -100,19 +97,9 @@ COMMANDS					*daily-notes-commands*
 :DailyNoteConfig
 	Start an interactive prompt to configure the plugin settings.
 
-==============================================================================
-KEYMAPS						*daily-notes-keymaps*
-
-The plugin provides the following default keymaps, which can be customized or
-disabled in the `setup()` function.
-
-`timestamp`
-  Description: Insert a timestamp on the current line.
-  Default: `<leader>ts`
-
-`timestamp_new_line`
-  Description: Insert a timestamp on a new line below the current one.
-  Default: `<leader>T`
+:DailyNoteTimestamp[!] - Insert a timestamp.
+	- With `!`, inserts the timestamp on a new line.
+	- Without `!`, inserts it at the current cursor position.
 
 ==============================================================================
 LICENSE						*daily-notes-license*
