@@ -7,7 +7,8 @@ CONTENTS					*daily-notes-contents*
   2. Usage...............................|daily-notes-usage|
   3. Configuration.................|daily-notes-configuration|
   4. Commands..........................|daily-notes-commands|
-  5. License.............................|daily-notes-license|
+  5. Keymaps...........................|daily-notes-keymaps|
+  6. License.............................|daily-notes-license|
 
 ==============================================================================
 INTRODUCTION					*daily-notes-introduction*
@@ -41,6 +42,11 @@ Default configuration:
     file_format = "%Y-%m-%d.md",
     dir_format = "%Y/%m",
     template_path = nil,
+    ignored_headers = {},
+    keymaps = {
+      timestamp = "<leader>ts",
+      timestamp_new_line = "<leader>T",
+    },
   })
 <
 CONFIGURATION OPTIONS
@@ -67,6 +73,15 @@ Optional path to a template file. If provided, new notes will use this
 template when yesterday's note doesn't exist.
 Default: `nil`
 
+`ignored_headers`		(table)
+A list of top-level headers whose content should not be copied from the
+previous day's note. For example, `{"Tasks"}`.
+Default: `{}`
+
+`keymaps`			(table)
+A table of key mappings for plugin actions. Set a keymap to `false` to disable it.
+See |daily-notes-keymaps| for details.
+
 ==============================================================================
 COMMANDS					*daily-notes-commands*
 
@@ -84,6 +99,20 @@ COMMANDS					*daily-notes-commands*
 
 :DailyNoteConfig
 	Start an interactive prompt to configure the plugin settings.
+
+==============================================================================
+KEYMAPS						*daily-notes-keymaps*
+
+The plugin provides the following default keymaps, which can be customized or
+disabled in the `setup()` function.
+
+`timestamp`
+  Description: Insert a timestamp on the current line.
+  Default: `<leader>ts`
+
+`timestamp_new_line`
+  Description: Insert a timestamp on a new line below the current one.
+  Default: `<leader>T`
 
 ==============================================================================
 LICENSE						*daily-notes-license*

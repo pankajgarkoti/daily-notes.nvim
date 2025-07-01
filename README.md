@@ -6,12 +6,14 @@ A simple and lightweight daily notes plugin for Neovim that helps you maintain a
 
 ## Features
 
-- 🗓️ **Daily Note Management**: Automatically create and open daily notes
-- 📁 **Organized Structure**: Notes are organized by year/month directories
-- 📝 **Template Support**: Use templates for new notes or copy from previous day
-- ⚡ **Fast Navigation**: Quickly navigate between previous/next day notes
-- 🛠️ **Interactive Configuration**: Configure the plugin interactively
-- 🎯 **Directory-aware**: Only active when working in your notes directory
+- 🗓️ **Daily Note Management**: Automatically create and open daily notes.
+- 📁 **Organized Structure**: Notes are organized by year/month directories.
+- 📝 **Template Support**: Use templates for new notes or copy from the previous day.
+- 🧹 **Selective Content Carryover**: Keep headers from the previous day's note but leave the content blank for a fresh start using the `ignored_headers` option.
+- ⏰ **Timestamping**: Quickly insert timestamps with configurable keymaps (`<leader>ts` and `<leader>T` by default).
+- ⚡ **Fast Navigation**: Quickly navigate between previous/next day notes.
+- 🛠️ **Interactive Configuration**: Configure the plugin interactively.
+- 🎯 **Directory-aware**: Only active when working in your notes directory.
 
 ## Installation
 
@@ -25,6 +27,13 @@ A simple and lightweight daily notes plugin for Neovim that helps you maintain a
       base_dir = "~/Documents/Notes",  -- Your notes directory
       journal_path = "Daily",          -- Subdirectory for daily notes
       template_path = "~/Documents/Notes/templates/daily.md", -- Optional template
+      -- Example of ignoring a header
+      ignored_headers = { "To-Do" },
+      -- Example of customizing keymaps
+      keymaps = {
+        timestamp = "<leader>dt",
+        timestamp_new_line = "<leader>dT",
+      }
     })
   end,
   keys = {
@@ -40,6 +49,8 @@ A simple and lightweight daily notes plugin for Neovim that helps you maintain a
     "DailyNoteNext",
     "DailyNoteTomorrow",
     "DailyNoteConfig",
+    "DailyNoteTimestamp",
+    "DailyNoteTimestampNewLine",
   },
 }
 ```
@@ -63,11 +74,19 @@ use {
 
 ```lua
 {
-  base_dir = "~/Desktop/notes",    -- Root directory for notes
-  journal_path = "Journal",        -- Subdirectory for daily notes
-  file_format = "%Y-%m-%d.md",     -- Date format for filenames
-  dir_format = "%Y/%m",            -- Date format for directories
-  template_path = nil,             -- Optional template file path
+  base_dir = "~/Desktop/notes",
+  journal_path = "Journal",
+  file_format = "%Y-%m-%d.md",
+  dir_format = "%Y/%m",
+  template_path = nil,
+  -- Headers to keep when creating a new note from the previous day, but whose
+  -- content should be cleared.
+  ignored_headers = {},
+  -- Default keymaps for timestamping. Set to `false` to disable.
+  keymaps = {
+    timestamp = "<leader>ts",
+    timestamp_new_line = "<leader>T",
+  },
 }
 ```
 
@@ -78,6 +97,10 @@ use {
 - **`file_format`**: Format for daily note filenames using `os.date` patterns (default: `YYYY-MM-DD.md`).
 - **`dir_format`**: Format for organizing notes into subdirectories using `os.date` patterns (default: `YYYY/MM`).
 - **`template_path`**: Optional path to a template file. If provided, new notes will use this template when yesterday's note doesn't exist.
+- **`ignored_headers`**: A list of top-level headers (e.g., `{ "Tasks" }`) whose content should be cleared when creating a new note from the previous day. The headers themselves are kept.
+- **`keymaps`**: A table to customize or disable the default keymaps for timestamping.
+  - `timestamp`: Inserts a timestamp on the current line. Default: `<leader>ts`.
+  - `timestamp_new_line`: Inserts a timestamp on a new line. Default: `<leader>T`.
 
 ## Usage
 
@@ -88,16 +111,28 @@ use {
 - `:DailyNoteNext` - Open next day's note
 - `:DailyNoteTomorrow` - Create and open tomorrow's note
 - `:DailyNoteConfig` - Interactive configuration
+- `:DailyNoteTimestamp` - Insert a timestamp on the current line
+- `:DailyNoteTimestampNewLine` - Insert a timestamp on a new line
 
-### Default Key Mappings
+### Key Mappings
 
-When using the lazy.nvim configuration above:
+The plugin comes with the following default keymaps for timestamping, which can be changed or disabled in the configuration:
 
-- `<leader>dn` - Open daily note
-- `<leader>dk` - Previous daily note
-- `<leader>dj` - Next daily note
-- `<leader>dm` - Create tomorrow's note
-- `<leader>dc` - Configure plugin
+- `<leader>ts`: Insert a timestamp on the current line.
+- `<leader>T`: Insert a timestamp on a new line below.
+
+For other actions, you can set up your own keymaps. Here is the recommended setup for `lazy.nvim`:
+
+```lua
+-- In your lazy.nvim plugin spec
+keys = {
+  { "<leader>dn", function() require("daily-notes").open_daily_note() end, desc = "Open daily note" },
+  { "<leader>dk", function() require("daily-notes").open_adjacent_note(-1) end, desc = "Previous daily note" },
+  { "<leader>dj", function() require("daily-notes").open_adjacent_note(1) end, desc = "Next daily note" },
+  { "<leader>dm", function() require("daily-notes").create_tomorrow_note() end, desc = "Create tomorrow's note" },
+  { "<leader>dc", function() require("daily-notes").configure_interactive() end, desc = "Configure daily notes" },
+}
+```
 
 ## Directory Structure
 

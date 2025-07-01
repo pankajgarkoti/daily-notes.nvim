@@ -7,6 +7,8 @@ local M = {}
 ---@field file_format string The format for the note's filename, using os.date patterns.
 ---@field dir_format string The format for the directory structure, using os.date patterns.
 ---@field template_path string | nil Optional path to a template file for new notes if yesterday's doesn't exist.
+---@field ignored_headers string[] List of headers to ignore when copying from yesterday's note.
+---@field keymaps table<string, string|boolean> Mappings for plugin actions
 
 ---@class NoteSection
 ---@field header string|nil The header line (e.g., "# Header")
@@ -21,6 +23,11 @@ local default_config = {
 	file_format = "%Y-%m-%d.md",
 	dir_format = "%Y/%m",
 	template_path = nil,
+	ignored_headers = {},
+	keymaps = {
+		timestamp = "<leader>ts",
+		timestamp_new_line = "<leader>T",
+	},
 }
 
 M.config = vim.deepcopy(default_config)
@@ -110,12 +117,32 @@ local function _merge_note_contents(template_parsed, old_note_parsed)
 	return table.concat(merged_lines, "\n")
 end
 
+-- Helper function to insert timestamped line
+local function insert_timestamped_line(same_line)
+	local current_line = vim.fn.line(".")
+	local indent = vim.fn.indent(current_line)
+	local timestamp = os.date("%H:%M:%S")
+	local current_content = vim.api.nvim_get_current_line()
+
+	if same_line then
+		local new_content = current_content .. " - " .. "[" .. timestamp .. "] "
+		vim.api.nvim_set_current_line(new_content)
+		vim.api.nvim_win_set_cursor(0, { current_line, #new_content })
+	else
+		local new_line = string.rep(" ", indent) .. " - " .. "[" .. timestamp .. "] "
+		vim.api.nvim_buf_set_lines(0, current_line, current_line, false, { new_line })
+		vim.api.nvim_win_set_cursor(0, { current_line + 1, #new_line })
+	end
+
+	vim.cmd("startinsert!")
+end
+
 ---Setup function to configure the daily note system
 ---@param opts DailyNoteConfig|nil Configuration options
 ---@return boolean Success status
 function M.setup(opts)
 	opts = opts or {}
-	M.config = vim.tbl_deep_extend("force", default_config, opts)
+	M.config = vim.tbl_deep_extend("force", vim.deepcopy(default_config), opts)
 
 	-- Expand paths
 	M.config.base_dir = vim.fn.expand(M.config.base_dir)
@@ -137,6 +164,13 @@ function M.setup(opts)
 	-- Check if template exists if specified
 	if M.config.template_path and vim.fn.filereadable(M.config.template_path) == 0 then
 		vim.notify("daily-notes: Template file not found: " .. M.config.template_path, vim.log.levels.WARN)
+	end
+
+	if M.config.keymaps and M.config.keymaps.timestamp then
+		vim.keymap.set("n", M.config.keymaps.timestamp, M.insert_timestamp, { noremap = true, silent = true, desc = "Insert timestamp on current line" })
+	end
+	if M.config.keymaps and M.config.keymaps.timestamp_new_line then
+		vim.keymap.set("n", M.config.keymaps.timestamp_new_line, M.insert_timestamp_new_line, { noremap = true, silent = true, desc = "Insert timestamp on new line" })
 	end
 
 	return true
@@ -318,6 +352,38 @@ local function strip_frontmatter_from_lines(lines)
 	return lines -- No closing '---' found
 end
 
+---Strip ignored headers from lines array
+---@param lines string[] Array of lines
+---@param ignored_headers string[] List of headers to ignore
+---@return string[] Lines with ignored headers removed
+local function strip_ignored_headers_from_lines(lines, ignored_headers)
+    if #ignored_headers == 0 then
+        return lines
+    end
+
+    local new_lines = {}
+    local in_ignored_section = false
+
+    for _, line in ipairs(lines) do
+        local is_header = line:match("^#+")
+        if is_header then
+            in_ignored_section = false
+            for _, ignored_header in ipairs(ignored_headers) do
+                if line:match("^#+\s+" .. ignored_header) then
+                    in_ignored_section = true
+                    break
+                end
+            end
+        end
+
+        if is_header or not in_ignored_section then
+            table.insert(new_lines, line)
+        end
+    end
+
+    return new_lines
+end
+
 ---Open today's daily note
 function M.open_daily_note()
 	local cwd = vim.fn.getcwd()
@@ -363,10 +429,11 @@ function M.open_daily_note()
 		content = _merge_note_contents(template_parsed, yesterday_parsed)
 		vim.notify("Created today's note by merging the updated template.", vim.log.levels.INFO)
 	elseif vim.fn.filereadable(yesterday_path) == 1 then
-		local lines = vim.fn.readfile(yesterday_path)
-		lines = strip_frontmatter_from_lines(lines)
-		content = table.concat(lines, "\n")
-		vim.notify("Created today's note from yesterday's.", vim.log.levels.INFO)
+                local lines = vim.fn.readfile(yesterday_path)
+                lines = strip_frontmatter_from_lines(lines)
+                lines = strip_ignored_headers_from_lines(lines, M.config.ignored_headers)
+                content = table.concat(lines, "\n")
+                vim.notify("Created today's note from yesterday's.", vim.log.levels.INFO)
 	elseif M.config.template_path and vim.fn.filereadable(M.config.template_path) == 1 then
 		local lines = vim.fn.readfile(M.config.template_path)
 		lines = strip_frontmatter_from_lines(lines)
@@ -453,6 +520,7 @@ function M.create_tomorrow_note()
 	if vim.fn.filereadable(today_path) == 1 then
 		local lines = vim.fn.readfile(today_path)
 		lines = strip_frontmatter_from_lines(lines)
+		lines = strip_ignored_headers_from_lines(lines, M.config.ignored_headers)
 		content = table.concat(lines, "\n")
 		vim.notify("Created tomorrow's note from today's.", vim.log.levels.INFO)
 	elseif M.config.template_path and vim.fn.filereadable(M.config.template_path) == 1 then
@@ -467,6 +535,16 @@ function M.create_tomorrow_note()
 	local final_content = new_metadata .. content
 	vim.fn.writefile(vim.split(final_content, "\n", true), tomorrow_path)
 	vim.cmd("e " .. tomorrow_path)
+end
+
+---Insert a timestamped line on the current line
+function M.insert_timestamp()
+	insert_timestamped_line(true)
+end
+
+---Insert a timestamped line on a new line
+function M.insert_timestamp_new_line()
+	insert_timestamped_line(false)
 end
 
 return M
