@@ -79,6 +79,11 @@ Default: `{}`
 The format for timestamps, using `os.date` patterns.
 Default: `%H:%M:%S`
 
+`search_depth`		(number)
+The number of days to look back for a recent note to copy from when the
+previous day's note doesn't exist.
+Default: `7`
+
 ==============================================================================
 COMMANDS					*daily-notes-commands*
 

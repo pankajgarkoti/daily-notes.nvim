@@ -92,6 +92,7 @@ use {
 - **`template_path`**: Optional path to a template file. If provided, new notes will use this template when yesterday's note doesn't exist.
 - **`ignored_headers`**: A list of top-level headers (e.g., `{ "Tasks" }`) whose content should be cleared when creating a new note from the previous day. The headers themselves are kept.
 - **`timestamp_format`**: The format for timestamps, using `os.date` patterns (default: `%H:%M:%S`).
+- **`search_depth`**: The number of days to look back for a recent note to copy from when the previous day's note doesn't exist (default: `7`).
 
 ## Usage
 
