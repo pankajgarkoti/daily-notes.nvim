@@ -7,7 +7,8 @@ CONTENTS					*daily-notes-contents*
   2. Usage...............................|daily-notes-usage|
   3. Configuration.................|daily-notes-configuration|
   4. Commands..........................|daily-notes-commands|
-  5. License.............................|daily-notes-license|
+  5. Keymaps...........................|daily-notes-keymaps|
+  6. License.............................|daily-notes-license|
 
 ==============================================================================
 INTRODUCTION					*daily-notes-introduction*
@@ -41,6 +42,8 @@ Default configuration:
     file_format = "%Y-%m-%d.md",
     dir_format = "%Y/%m",
     template_path = nil,
+    ignored_headers = {},
+    timestamp_format = "%H:%M:%S",
   })
 <
 CONFIGURATION OPTIONS
@@ -67,6 +70,20 @@ Optional path to a template file. If provided, new notes will use this
 template when yesterday's note doesn't exist.
 Default: `nil`
 
+`ignored_headers`		(table)
+A list of top-level headers whose content should not be copied from the
+previous day's note. For example, `{"Tasks"}`.
+Default: `{}`
+
+`timestamp_format`		(string)
+The format for timestamps, using `os.date` patterns.
+Default: `%H:%M:%S`
+
+`search_depth`		(number)
+The number of days to look back for a recent note to copy from when the
+previous day's note doesn't exist.
+Default: `7`
+
 ==============================================================================
 COMMANDS					*daily-notes-commands*
 
@@ -84,6 +101,10 @@ COMMANDS					*daily-notes-commands*
 
 :DailyNoteConfig
 	Start an interactive prompt to configure the plugin settings.
+
+:DailyNoteTimestamp[!] - Insert a timestamp.
+	- With `!`, inserts the timestamp on a new line.
+	- Without `!`, inserts it at the current cursor position.
 
 ==============================================================================
 LICENSE						*daily-notes-license*
