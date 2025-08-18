@@ -252,9 +252,9 @@ local function strip_frontmatter_from_lines(lines)
 	return lines -- No closing '---' found
 end
 
----Strip ignored headers from lines array
+---Strip ignored headers from lines array (only top-level headers can be ignored)
 ---@param lines string[] Array of lines
----@param ignored_headers string[] List of headers to ignore
+---@param ignored_headers string[] List of top-level headers to ignore
 ---@return string[] Lines with ignored headers removed
 local function strip_ignored_headers_from_lines(lines, ignored_headers)
 	if #ignored_headers == 0 then
@@ -265,18 +265,19 @@ local function strip_ignored_headers_from_lines(lines, ignored_headers)
 	local in_ignored_section = false
 
 	for _, line in ipairs(lines) do
-		local is_header = line:match("^#+")
-		if is_header then
+		-- Only top-level headers can change the ignored state
+		if line:match("^#%s+") then
 			in_ignored_section = false
 			for _, ignored_header in ipairs(ignored_headers) do
-				if line:match("^#+%s+" .. ignored_header) then
+				if line:match("^#%s+" .. ignored_header) then
 					in_ignored_section = true
 					break
 				end
 			end
-		end
-
-		if is_header or not in_ignored_section then
+			-- Always include top-level headers (even ignored ones)
+			table.insert(new_lines, line)
+		elseif not in_ignored_section then
+			-- Only include content if not in ignored section
 			table.insert(new_lines, line)
 		end
 	end
