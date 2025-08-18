@@ -274,9 +274,10 @@ local function strip_ignored_headers_from_lines(lines, ignored_headers)
 					break
 				end
 			end
-		end
-
-		if not in_ignored_section then
+			-- Always include top-level headers (even ignored ones)
+			table.insert(new_lines, line)
+		elseif not in_ignored_section then
+			-- Only include content if not in ignored section
 			table.insert(new_lines, line)
 		end
 	end
