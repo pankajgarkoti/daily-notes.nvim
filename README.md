@@ -162,12 +162,7 @@ The plugin creates a directory structure like this:
 
 ## AI Disclaimer
 
-This plugin was create entirely using CodeCompanion https://github.com/olimorris/codecompanion.nvim and Aider https://github.com/aider-chat/aider
-
-The models used were:
-
-- `gemini-2.5-pro` and `gemini-2.5-flash` with Aider - Generated most of the code and documentation
-- `claude-4-sonnet` with CodeCompanion - Helped with more minute fixes and changes
+A significant portion of the code in this plugin is AI generated.
 
 ## License
 
